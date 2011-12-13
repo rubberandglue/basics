@@ -37,6 +37,11 @@ Capistrano::Configuration.instance(:must_exist).load do
       ;
     end
 
+    desc "Seeding database"
+    task :seed, :roles => :web, :except => {:no_release => true} do
+      run "cd #{current_path}; RAILS_ENV=#{rails_env} #{rake} db:seed"
+    end
+
     desc "Touching file for Passenger restart"
     task :restart, :roles => :app, :except => {:no_release => true} do
       run "#{try_sudo} touch #{File.join(current_path, 'tmp', 'restart.txt')}"
