@@ -47,12 +47,14 @@ Capistrano::Configuration.instance(:must_exist).load do
       run "cd #{deploy_to}/current && bundle exec jammit"
     end
 
+    desc "Create a symlink for the database config"
     task :symlink_db_config, :roles => :app do
       db_config = "#{shared_path}/config/database.yml"
       run "ln -sf #{db_config} #{release_path}/config/database.yml"
     end
     after 'bundle:install', 'deploy:symlink_db_config'
 
+    desc "Create a symlink for the private upload folder"
     task :symlink_private_uploads, :roles => :app do
       shared_upload_path = "#{shared_path}/uploads"
       run "mkdir -p #{shared_upload_path} && chown -R nobody:nogroup #{shared_upload_path} && ln -s #{shared_upload_path} #{release_path}/uploads"
