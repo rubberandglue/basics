@@ -2,7 +2,7 @@ Capistrano::Configuration.instance(:must_exist).load do
   require 'capistrano/ext/multistage'
 
   def prompt_with_default(var, default)
-    set var, Proc.new { Capistrano::CLI.ui.ask("#{var} [#{default}] : ")}
+    set var, Proc.new { Capistrano::CLI.ui.ask("#{var} [#{default}] : ") }
     set var, default if eval("#{var.to_s}.empty?")
   end
 
@@ -25,17 +25,21 @@ Capistrano::Configuration.instance(:must_exist).load do
   # Git settings
   set(:ssh_options) do
     prompt_with_default(:key_path, '~/.ssh/id_rsa')
-    {:host_key => "ssh-rsa", :encryption => "blowfish-cbc", :compression => 'zlib', :keys => key_path, :forward_agent => true }
+    {:host_key => "ssh-rsa", :encryption => "blowfish-cbc", :compression => 'zlib', :keys => key_path, :forward_agent => true}
   end
   set :bundle_flags, nil
 
   namespace :deploy do
-    task :start do ; end
-    task :stop do ; end
+    task :start do
+      ;
+    end
+    task :stop do
+      ;
+    end
 
     desc "Touching file for Passenger restart"
-    task :restart, :roles => :app, :except => { :no_release => true } do
-      run "#{try_sudo} touch #{File.join(current_path,'tmp','restart.txt')}"
+    task :restart, :roles => :app, :except => {:no_release => true} do
+      run "#{try_sudo} touch #{File.join(current_path, 'tmp', 'restart.txt')}"
     end
 
     desc "Create asset packages for production"
@@ -47,7 +51,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       db_config = "#{shared_path}/config/database.yml"
       run "ln -sf #{db_config} #{release_path}/config/database.yml"
     end
-    after 'deploy:update_code', 'deploy:symlink_db_config'
+    after 'bundle:install', 'deploy:symlink_db_config'
 
     task :symlink_private_uploads, :roles => :app do
       shared_upload_path = "#{shared_path}/uploads"
