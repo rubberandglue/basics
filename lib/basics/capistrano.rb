@@ -6,8 +6,8 @@ Capistrano::Configuration.instance(:must_exist).load do
     set var, default if eval("#{var.to_s}.empty?")
   end
 
-  set :stages, %w(production development)
-  set :default_stage, "development"
+  set :stages, %w(production staging)
+  set :default_stage, "staging"
 
   set(:app_name) { abort "Please specify the short name of your application, set :app_name, 'foo'" }
   set(:application) { "#{app_name}.rubberandglue.at" }
