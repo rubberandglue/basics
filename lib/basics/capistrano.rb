@@ -27,7 +27,6 @@ Capistrano::Configuration.instance(:must_exist).load do
     prompt_with_default(:key_path, '~/.ssh/id_rsa')
     {:host_key => "ssh-rsa", :encryption => "blowfish-cbc", :compression => 'zlib', :keys => key_path, :forward_agent => true}
   end
-  set :bundle_flags, nil
 
   namespace :deploy do
     task :start do
