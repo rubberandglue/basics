@@ -1,4 +1,8 @@
 Capistrano::Configuration.instance(:must_exist).load do
+  require 'rvm/capistrano'
+  require 'bundler/setup'
+  require 'bundler/capistrano'
+  require 'capistrano_colors'
   require 'capistrano/ext/multistage'
 
   def prompt_with_default(var, default)
@@ -13,6 +17,13 @@ Capistrano::Configuration.instance(:must_exist).load do
   set(:application) { "#{app_name}.rubberandglue.at" }
   set :user, "deploy"
 
+  # RVM
+  set :rvm_type, :system
+
+  # Strange rvm behavior
+  set :use_sudo, false
+
+
   # SCM settings
   set(:appdir) { "/projects/#{application}" }
   set :scm, 'git'
@@ -25,7 +36,36 @@ Capistrano::Configuration.instance(:must_exist).load do
   # Git settings
   set(:ssh_options) do
     prompt_with_default(:key_path, '~/.ssh/id_rsa')
-    {:host_key => "ssh-rsa", :encryption => "blowfish-cbc", :compression => 'zlib', :keys => key_path, :forward_agent => true}
+    { :host_key => "ssh-rsa", :encryption => "blowfish-cbc", :compression => 'zlib', :keys => key_path, :forward_agent => true }
+  end
+
+  set(:db_name) { "#{app_name}_#{rails_env}" }
+  set :db_admin_user, 'root'
+  set(:db_user) { "#{app_name[0..13]}_#{rails_env[0..0]}" }
+
+  namespace :db do
+    namespace :mysql do
+      desc "Setup Mysql Server"
+      task :setup, :roles => :db, :only => { :primary => true } do
+        user_select = <<-SQL
+          USE mysql;
+          SELECT * FROM user WHERE user = "#{db_user}";
+        SQL
+
+        run "mysql --user=#{db_admin_user} -p --execute=\"#{user_select}\"" do |channel, stream, data|
+          if data =~ /^Enter password:/
+            pass = Capistrano::CLI.password_prompt "Enter database password for '#{db_admin_user}':"
+            puts pass
+            channel.send_data "#{pass}\n"
+            puts '-' * 20
+            puts data
+            puts '-' * 20
+            puts stream
+            puts '-' * 20
+          end
+        end
+      end
+    end
   end
 
   namespace :deploy do
@@ -37,12 +77,12 @@ Capistrano::Configuration.instance(:must_exist).load do
     end
 
     desc "Seeding database"
-    task :seed, :roles => :web, :except => {:no_release => true} do
+    task :seed, :roles => :web, :except => { :no_release => true } do
       run "cd #{current_path}; RAILS_ENV=#{rails_env} #{rake} db:seed"
     end
 
     desc "Touching file for Passenger restart"
-    task :restart, :roles => :app, :except => {:no_release => true} do
+    task :restart, :roles => :app, :except => { :no_release => true } do
       run "#{try_sudo} touch #{File.join(current_path, 'tmp', 'restart.txt')}"
     end
 
