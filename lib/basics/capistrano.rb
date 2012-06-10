@@ -1,5 +1,11 @@
 Capistrano::Configuration.instance(:must_exist).load do
+  require 'rvm/capistrano'
+  require 'bundler/setup'
+  require 'bundler/capistrano'
+  require 'capistrano_colors'
   require 'capistrano/ext/multistage'
+  require 'active_support'
+  require 'active_support/core_ext/string'
 
   def prompt_with_default(var, default)
     set var, Proc.new { Capistrano::CLI.ui.ask("#{var} [#{default}] : ") }
@@ -13,6 +19,13 @@ Capistrano::Configuration.instance(:must_exist).load do
   set(:application) { "#{app_name}.rubberandglue.at" }
   set :user, "deploy"
 
+  # RVM
+  set :rvm_type, :system
+
+  # Strange rvm behavior
+  set :use_sudo, false
+
+
   # SCM settings
   set(:appdir) { "/projects/#{application}" }
   set :scm, 'git'
@@ -25,7 +38,79 @@ Capistrano::Configuration.instance(:must_exist).load do
   # Git settings
   set(:ssh_options) do
     prompt_with_default(:key_path, '~/.ssh/id_rsa')
-    {:host_key => "ssh-rsa", :encryption => "blowfish-cbc", :compression => 'zlib', :keys => key_path, :forward_agent => true}
+    { :host_key => "ssh-rsa", :encryption => "blowfish-cbc", :compression => 'zlib', :keys => key_path, :forward_agent => true }
+  end
+
+  set(:db_name) { "#{app_name}_#{rails_env}" }
+  set :db_admin_user, 'root'
+  set(:db_admin_password) { Capistrano::CLI.password_prompt "Enter database password for '#{db_admin_user}': " }
+  set(:db_user) { "#{app_name[0..13]}_#{rails_env[0..0]}" }
+  set(:db_password) { SecureRandom.hex }
+
+  namespace :db do
+    namespace :mysql do
+      desc "Setup everything"
+      task :setup do
+        install
+        create_user
+        create_database_yml
+      end
+
+      task :install, :roles => :db do
+        run "#{sudo} apt-get -y update"
+        run "#{sudo} apt-get -y install mysql-server mysql-client libmysqlclient-dev"
+      end
+
+      task :create_user, :roles => :db, :only => { :primary => true } do
+        user_select = <<-SQL.squish
+          USE mysql;
+          SELECT COUNT(*) FROM user WHERE user = \"#{db_user}\";
+        SQL
+
+        user_grant = <<-SQL.squish
+          GRANT ALL PRIVILEGES ON #{db_name}.* TO '#{db_user}'@'localhost' IDENTIFIED BY '#{db_password}';
+        SQL
+
+        # Check if mysql user already exists
+        run "mysql --user=#{db_admin_user} -p --skip-column-names --execute='#{user_select}'" do |channel, stream, data|
+          channel.send_data "#{db_admin_password}\n" if stream == :err and data =~ /^Enter password:/
+          user_count = data.strip.to_i if stream == :out
+        end
+
+        if defined?(user_count) and user_count == 0
+          run "mysql --user=#{db_admin_user} -p --execute='#{user_grant}'" do |channel, stream, data|
+            channel.send_data "#{db_admin_password}\n" if stream == :err and data =~ /^Enter password:/
+          end
+        else
+          raise 'Mysql user already exists.'
+        end
+      end
+
+      task :create_database_yml, :roles => :app do
+        # Check if database already exists
+        file = File.join(shared_path, 'config', 'database.yml')
+        run "test ! -r #{file}"
+
+        # Check for different adapters on 1.9
+        adapter = rvm_ruby_string.start_with?('1.8') ? 'mysql' : 'mysql2'
+
+        configuration                 = { }
+        configuration[rails_env.to_s] = {
+          :adapter   => adapter,
+          :encoding  => 'utf8',
+          :database  => db_name,
+          :pool      => 5,
+          :username  => db_user,
+          :password  => db_password,
+          :socket    => '/var/run/mysqld/mysqld.sock',
+          :reconnect => false,
+          :host      => 'localhost'
+        }.stringify_keys
+
+        # Copy config on Server
+        put configuration.to_yaml, file
+      end
+    end
   end
 
   namespace :deploy do
@@ -37,12 +122,12 @@ Capistrano::Configuration.instance(:must_exist).load do
     end
 
     desc "Seeding database"
-    task :seed, :roles => :web, :except => {:no_release => true} do
+    task :seed, :roles => :web, :except => { :no_release => true } do
       run "cd #{current_path}; RAILS_ENV=#{rails_env} #{rake} db:seed"
     end
 
     desc "Touching file for Passenger restart"
-    task :restart, :roles => :app, :except => {:no_release => true} do
+    task :restart, :roles => :app, :except => { :no_release => true } do
       run "#{try_sudo} touch #{File.join(current_path, 'tmp', 'restart.txt')}"
     end
 
