@@ -141,16 +141,12 @@ Capistrano::Configuration.instance(:must_exist).load do
       db_config = "#{shared_path}/config/database.yml"
       run "ln -sf #{db_config} #{release_path}/config/database.yml"
     end
-    after 'bundle:install', 'deploy:symlink_db_config'
 
     desc "Create a symlink for the private upload folder"
     task :symlink_private_uploads, :roles => :app do
       shared_upload_path = "#{shared_path}/uploads"
       run "mkdir -p #{shared_upload_path} && chown -R nobody:nogroup #{shared_upload_path} && ln -s #{shared_upload_path} #{release_path}/uploads"
     end
-    after 'deploy:update_code', 'deploy:symlink_private_uploads'
-
-    after 'deploy:symlink', 'deploy:cleanup'
 
     namespace :pending do
       desc "Stat"
@@ -161,4 +157,14 @@ Capistrano::Configuration.instance(:must_exist).load do
       end
     end
   end
+
+  before 'deploy:setup', 'rvm:install_rvm'
+  before 'deploy:setup', 'rvm:install_ruby'
+  after 'deploy:setup', 'db:mysql:setup'
+
+  before 'deploy:restart', 'deploy:migrate'
+  before 'deploy:restart', 'deploy:cleanup'
+
+  after 'bundle:install', 'deploy:symlink_db_config'
+  after 'bundle:install', 'deploy:symlink_private_uploads'
 end
