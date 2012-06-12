@@ -72,7 +72,7 @@ Capistrano::Configuration.instance(:must_exist).load do
         SQL
 
         # Check if mysql user already exists
-        run "mysql --user=#{db_admin_user} -p --skip-column-names --execute='#{user_select}'" do |channel, stream, data|
+        run "mysql --user=#{db_admin_user} -p --skip-column-names --batch --execute='#{user_select}'" do |channel, stream, data|
           channel.send_data "#{db_admin_password}\n" if stream == :err and data =~ /^Enter password:/
           user_count = data.strip.to_i if stream == :out
         end
