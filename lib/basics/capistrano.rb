@@ -4,7 +4,7 @@ Capistrano::Configuration.instance(:must_exist).load do
   require 'bundler/capistrano'
   require 'capistrano_colors'
   require 'capistrano/ext/multistage'
-  require 'active_support'
+  require 'securerandom'
   require 'active_support/core_ext/string'
 
   def prompt_with_default(var, default)
@@ -96,15 +96,15 @@ Capistrano::Configuration.instance(:must_exist).load do
 
         configuration                 = { }
         configuration[rails_env.to_s] = {
-          :adapter   => adapter,
-          :encoding  => 'utf8',
-          :database  => db_name,
-          :pool      => 5,
-          :username  => db_user,
-          :password  => db_password,
-          :socket    => '/var/run/mysqld/mysqld.sock',
-          :reconnect => false,
-          :host      => 'localhost'
+            :adapter   => adapter,
+            :encoding  => 'utf8',
+            :database  => db_name,
+            :pool      => 5,
+            :username  => db_user,
+            :password  => db_password,
+            :socket    => '/var/run/mysqld/mysqld.sock',
+            :reconnect => false,
+            :host      => 'localhost'
         }.stringify_keys
 
         # Copy config on Server
