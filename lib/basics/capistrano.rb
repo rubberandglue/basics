@@ -5,7 +5,7 @@ Capistrano::Configuration.instance(:must_exist).load do
   require 'capistrano_colors'
   require 'capistrano/ext/multistage'
   require 'securerandom'
-  require 'active_support/core_ext/string'
+  require 'active_support/core_ext/string/filters'
 
   def prompt_with_default(var, default)
     set var, Proc.new { Capistrano::CLI.ui.ask("#{var} [#{default}] : ") }
