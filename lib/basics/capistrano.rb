@@ -158,10 +158,6 @@ Capistrano::Configuration.instance(:must_exist).load do
     end
   end
 
-  before 'deploy:setup', 'rvm:install_rvm'
-  before 'deploy:setup', 'rvm:install_ruby'
-  after 'deploy:setup', 'db:mysql:setup'
-
   before 'deploy:restart', 'deploy:migrate'
   before 'deploy:restart', 'deploy:cleanup'
 
