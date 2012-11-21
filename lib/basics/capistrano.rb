@@ -52,7 +52,6 @@ Capistrano::Configuration.instance(:must_exist).load do
     namespace :mysql do
       desc "Setup everything"
       task :setup do
-        install
         create_user
         create_database_yml
       end
