@@ -16,11 +16,14 @@ Gem::Specification.new do |s|
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
   s.executables   = `git ls-files -- bin/*`.split("\n").map { |f| File.basename(f) }
-  s.require_paths = ["lib"]
+  s.require_paths = ['lib']
 
-  s.add_dependency "rvm-capistrano"
-  s.add_dependency "bundler"
-  s.add_dependency "capistrano"
-  s.add_dependency "capistrano_colors"
-  s.add_dependency "capistrano-ext"
+  s.add_dependency 'rvm-capistrano'
+  s.add_dependency 'bundler'
+  s.add_dependency 'capistrano'
+  s.add_dependency 'capistrano_colors'
+  s.add_dependency 'capistrano-ext'
+  s.add_dependency 'actionpack'
+
+  s.add_development_dependency 'rspec'
 end
