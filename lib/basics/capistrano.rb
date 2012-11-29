@@ -89,6 +89,8 @@ Capistrano::Configuration.instance(:must_exist).load do
       task :create_database_yml, :roles => :app do
         # Check if database already exists
         file = File.join(shared_path, 'config', 'database.yml')
+
+        run "mkdir -p #{shared_path}/config"
         run "test ! -r #{file}"
 
         # Check for different adapters on 1.9
