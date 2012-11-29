@@ -69,6 +69,7 @@ Capistrano::Configuration.instance(:must_exist).load do
 
         user_grant = <<-SQL.squish
           GRANT ALL PRIVILEGES ON #{db_name}.* TO \"#{db_user}\"@\"localhost\" IDENTIFIED BY \"#{db_password}\";
+          CREATE DATABASE #{db_name};
         SQL
 
         # Check if mysql user already exists
