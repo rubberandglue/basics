@@ -1,6 +1,9 @@
 capistrano recipie
 ------------------
 
+cap app:tail
+
+
 show_attributes
 ---------------
 
