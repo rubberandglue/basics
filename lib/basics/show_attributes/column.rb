@@ -1,5 +1,6 @@
 module ShowAttributes
   class Column < Struct.new(:object, :name)
+    include ::ActionView::Helpers
     include Helper
 
     NONE = '-'.freeze
