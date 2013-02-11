@@ -162,11 +162,12 @@ Capistrano::Configuration.instance(:must_exist).load do
     end
 
     desc "Set the chmod for the public uploads tmp folder"
-    task :chmod_tmp_uploads, :roles => :app do
+    task :chmod_uploads, :roles => :app do
       shared_asset_path = "#{shared_path}/assets"
       shared_tmp_asset_path = "#{shared_asset_path}/tmp"
 
       run "mkdir -p #{shared_tmp_asset_path} && chmod 777 #{shared_tmp_asset_path} && chown -R nobody:nogroup #{shared_tmp_asset_path}"
+      run "chmod 777 #{shared_asset_path}"
     end
 
     namespace :pending do
@@ -184,4 +185,5 @@ Capistrano::Configuration.instance(:must_exist).load do
 
   after 'bundle:install', 'deploy:symlink_db_config'
   after 'bundle:install', 'deploy:symlink_private_uploads'
+  after 'bundle:install', 'deploy:chmod_uploads'
 end
