@@ -151,6 +151,14 @@ Capistrano::Configuration.instance(:must_exist).load do
       run "mkdir -p #{shared_upload_path} && chown -R nobody:nogroup #{shared_upload_path} && ln -s #{shared_upload_path} #{release_path}/uploads"
     end
 
+    desc "Set the chmod for the public uploads tmp folder"
+    task :chmod_tmp_uploads, :roles => :app do
+      shared_asset_path = "#{shared_path}/assets"
+      shared_tmp_asset_path = "#{shared_asset_path}/tmp"
+
+      run "mkdir -p #{shared_tmp_asset_path} && chmod 777 #{shared_tmp_asset_path} && chown -R nobody:nogroup #{shared_tmp_asset_path}"
+    end
+
     namespace :pending do
       desc "Stat"
       task :stat do
