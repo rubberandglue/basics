@@ -48,6 +48,16 @@ Capistrano::Configuration.instance(:must_exist).load do
   set(:db_user) { "#{app_name[0..13]}_#{rails_env[0..0]}" }
   set(:db_password) { SecureRandom.hex }
 
+  namespace :app do
+    task :tail, roles: :app do
+      run "tail -f #{shared_path}/log/*.log" do |channel, stream, data|
+        puts
+        puts "#{channel[:host]}: #{data}"
+        break if stream == :err
+      end
+    end
+  end
+
   namespace :db do
     namespace :mysql do
       desc "Setup everything"
@@ -99,15 +109,15 @@ Capistrano::Configuration.instance(:must_exist).load do
 
         configuration                 = { }
         configuration[rails_env.to_s] = {
-            :adapter   => adapter,
-            :encoding  => 'utf8',
-            :database  => db_name,
-            :pool      => 5,
-            :username  => db_user,
-            :password  => db_password,
-            :socket    => '/var/run/mysqld/mysqld.sock',
-            :reconnect => false,
-            :host      => 'localhost'
+          :adapter   => adapter,
+          :encoding  => 'utf8',
+          :database  => db_name,
+          :pool      => 5,
+          :username  => db_user,
+          :password  => db_password,
+          :socket    => '/var/run/mysqld/mysqld.sock',
+          :reconnect => false,
+          :host      => 'localhost'
         }.stringify_keys
 
         # Copy config on Server

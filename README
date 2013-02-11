@@ -1,1 +1,15 @@
-test
+capistrano recipie
+------------------
+
+cap app:tail
+
+
+show_attributes
+---------------
+
+USAGE: 
+
+<%= show_attributes(@model) do |m| %>
+  <%= m.dl(:name) %>
+  <%= m.dl(:description) %>
+<% end %>
