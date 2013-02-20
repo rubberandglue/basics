@@ -2,6 +2,7 @@ capistrano recipie
 ------------------
 
 cap app:tail
+cap app:setup # Installs gcc, git, curl, libs for nginx
 
 
 show_attributes
