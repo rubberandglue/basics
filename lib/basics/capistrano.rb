@@ -161,9 +161,25 @@ Capistrano::Configuration.instance(:must_exist).load do
       run "mkdir -p #{shared_upload_path} && chown -R nobody:nogroup #{shared_upload_path} && ln -s #{shared_upload_path} #{release_path}/uploads"
     end
 
+    desc "Create a symlink for the public upload folder"
+    task :symlink_private_uploads, :roles => :app do
+      shared_upload_path = "#{shared_path}/public/uploads"
+      run "mkdir -p #{shared_upload_path} && chown -R nobody:nogroup #{shared_upload_path} && ln -s #{shared_upload_path} #{release_path}/public/uploads"
+    end
+
     desc "Set the chmod for the public uploads tmp folder"
     task :chmod_uploads, :roles => :app do
       shared_asset_path = "#{shared_path}/assets"
+      shared_tmp_asset_path = "#{shared_asset_path}/tmp"
+
+      run "mkdir -p #{shared_tmp_asset_path} && chmod 777 #{shared_tmp_asset_path} && chown -R nobody:nogroup #{shared_tmp_asset_path}"
+      run "chmod 777 #{shared_asset_path}"
+    end
+
+
+    desc "Set the chmod for the public uploads tmp folder"
+    task :chmod_uploads, :roles => :app do
+      shared_asset_path = "#{shared_path}/public/uploads"
       shared_tmp_asset_path = "#{shared_asset_path}/tmp"
 
       run "mkdir -p #{shared_tmp_asset_path} && chmod 777 #{shared_tmp_asset_path} && chown -R nobody:nogroup #{shared_tmp_asset_path}"
