@@ -50,11 +50,17 @@ Capistrano::Configuration.instance(:must_exist).load do
 
   namespace :app do
     task :tail, roles: :app do
-      run "tail -f #{shared_path}/log/*.log" do |channel, stream, data|
-        puts
-        puts "#{channel[:host]}: #{data}"
-        break if stream == :err
-      end
+      stream "tail -f #{shared_path}/log/*.log"
+    end
+
+    task :setup, roles: :app do
+      run 'apt-get -y update'
+      run 'apt-get -y install build-essential curl git-core'
+      install_nginx_libs
+    end
+
+    task :install_nginx_libs, roles: :app do
+      run 'apt-get -y install libopenssl-ruby libcurl4-openssl-dev libssl-dev'
     end
   end
 
