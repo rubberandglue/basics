@@ -158,8 +158,8 @@ Capistrano::Configuration.instance(:must_exist).load do
 
     desc "Create a symlink for the database config"
     task :symlink_db_config, :roles => :app do
-      db_config = "#{shared_path}/config/database.yml"
-      run "ln -sf #{db_config} #{release_path}/config/database.yml"
+      run "ln -sf #{shared_path}/config/database.yml #{release_path}/config/database.yml"
+      run "ln -sf #{shared_path}/config/couchdb.yml #{release_path}/config/couchdb.yml"
     end
 
     desc "Create a symlink for the private upload folder"
