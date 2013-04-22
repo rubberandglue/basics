@@ -35,7 +35,7 @@ Capistrano::Configuration.instance(:must_exist).load do
   set :deploy_via, 'remote_cache'
   set :migrate_target, :current
   set(:deploy_to) { appdir }
-  set :autorun_migrations, true
+  _cset :autorun_migrations, true
 
   # Git settings
   set(:ssh_options) do
@@ -203,8 +203,8 @@ Capistrano::Configuration.instance(:must_exist).load do
     end
   end
 
-  before 'deploy:restart', 'deploy:migrate'
-  before 'deploy:restart', 'deploy:cleanup' if autorun_migrations
+  before 'deploy:restart', 'deploy:migrate' if autorun_migrations
+  before 'deploy:restart', 'deploy:cleanup' 
 
   after 'bundle:install', 'deploy:symlink_db_config'
   after 'bundle:install', 'deploy:symlink_private_uploads'
